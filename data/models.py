@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, \
+    String, ForeignKey, Boolean, orm
 from sqlalchemy import update as sqlalchemy_update
 from sqlalchemy.future import select
 
@@ -36,6 +37,11 @@ class User(Base, ModelAdmin):
 
     id = Column(Integer, primary_key=True)
     address = Column(String)
+    is_operator = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)
+    HD_of_the_tenant = Column(String)
+    waiting_for_operator = Column(Boolean, default=False)
+    operator = Column(Integer, default=0)
 
     __mapper_args__ = {"eager_defaults": True}
 
@@ -43,6 +49,29 @@ class User(Base, ModelAdmin):
         return (
             f"<{self.__class__.__name__}("
             f"id={self.id}, "
-            f"address={self.address}"
+            f"address={self.address}, "
+            f"is_operator={self.is_operator}, "
+            f"is_admin={self.is_admin}, "
+            f"HD_of_the_tenant={self.HD_of_the_tenant}"
             f")>"
         )
+
+
+class Operator(Base, ModelAdmin):
+    __tablename__ = "operators"
+
+    id = Column(Integer,  ForeignKey('users.id'), primary_key=True)
+    HD_of_the_operator = Column(String)
+
+    user = orm.relationship('User')
+
+    __mapper_args__ = {"eager_defaults": True}
+
+    def __repr__(self):
+        return (
+            f"<{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"HD_of_the_operator={self.HD_of_the_operator}"
+            f")>"
+        )
+

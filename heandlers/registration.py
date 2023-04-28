@@ -1,15 +1,10 @@
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram import types
-from aiogram import Dispatcher
+from aiogram import types, Dispatcher
 from data.defs_orm import create_user, update_user
-from keyboards import kb_register
+from keyboards import kb_registration, remove
 from sqlalchemy.exc import IntegrityError
+from fsm import FSMReg
 
-
-class FSMReg(StatesGroup):
-    address = State()
-    is_the_data_correct = State()
 
 
 async def start(msg: types.Message):
@@ -17,7 +12,7 @@ async def start(msg: types.Message):
         await create_user(msg.from_id)
         await FSMReg.address.set()
         await msg.answer('Добро пожаловать в ERC_JKH')
-        await msg.answer('Введите свой адрес, можете воспользоваться, кнопкой в меню:', reply_markup=kb_register)
+        await msg.answer('Введите свой адрес, можете воспользоваться, кнопкой в меню:', reply_markup=kb_registration)
     except IntegrityError:
         await msg.answer('Вы уже зарегистрированы, если хотите изменить свооё местоположение, то пишите что-то')
 
@@ -27,7 +22,7 @@ async def send_address(msg: types.Message, state: FSMContext):
         data['address'] = msg.text
     await FSMReg.next()
     await msg.answer(f'Ваш адрес точно {msg.text}?\n'
-                     f'Введите "да" или "нет"')
+                     f'Введите "да" или "нет"', reply_markup=remove)
 
 
 async def check_correctness(msg: types.Message, state: FSMContext):
@@ -38,7 +33,8 @@ async def check_correctness(msg: types.Message, state: FSMContext):
         await msg.answer('Вы зарегистрированы!')
         await state.finish()
     elif message_text == 'нет':
-        await FSMReg.last()
+        await msg.answer('Введите свой адрес, можете воспользоваться, кнопкой в меню:', reply_markup=kb_registration)
+        await FSMReg.first()
     else:
         await msg.answer('Введите "да" или "нет"')
 
