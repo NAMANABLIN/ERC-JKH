@@ -2,9 +2,9 @@ from create_bot import dp
 from aiogram.utils import executor
 from data.defs_orm import init_app
 
-from heandlers import admin, user, registration
+from heandlers import admin, menu, registration
 
-user.register_heandlers_client(dp)
+menu.menu_heandlers_client(dp)
 registration.register_heandlers_client(dp)
 
 

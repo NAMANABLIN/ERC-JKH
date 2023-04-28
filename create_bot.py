@@ -4,6 +4,6 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from config import JKH_TOKEN
 
-storage=MemoryStorage()
+storage = MemoryStorage()
 bot = Bot(token=JKH_TOKEN)
 dp = Dispatcher(bot, storage=storage)
