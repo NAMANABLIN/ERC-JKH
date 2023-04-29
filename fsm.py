@@ -5,6 +5,7 @@ class FSMReg(StatesGroup):
     address = State()
     is_the_data_correct = State()
 
-class FSMCommunication_with_the_operator(StatesGroup):
-    talk = State()
 
+class FSMCommunication_with_operator(StatesGroup):
+    first_message = State()
+    talk = State()

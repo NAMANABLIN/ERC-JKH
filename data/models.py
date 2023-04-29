@@ -31,17 +31,25 @@ class ModelAdmin:
         (result,) = results.one()
         return result
 
+    @classmethod
+    async def many_get(cls, waiting_for_operator):
+        query = select(cls).where(cls.waiting_for_operator == waiting_for_operator)
+        results = await async_db_session.execute(query)
+        (result,) = results.fetchall()
+        return result
+
 
 class User(Base, ModelAdmin):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    address = Column(String)
+    address = Column(String, default='')
     is_operator = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
-    HD_of_the_tenant = Column(String)
+    HD_of_the_tenant = Column(String, default='')
     waiting_for_operator = Column(Boolean, default=False)
-    operator = Column(Integer, default=0)
+    message2operator = Column(String, default='')
+    operator = Column(Integer, default=0) #id оператора
 
     __mapper_args__ = {"eager_defaults": True}
 
