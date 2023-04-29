@@ -19,8 +19,8 @@ async def update_user(id, **kwargs):
     return user.id
 
 
-async def get_user(id, **kwargs):
-    info = await User.get(id, **kwargs)
+async def get_user(id):
+    info = await User.get(id)
     return info
 async def get_users_report():
     info = await User.many_get(waiting_for_operator=True)

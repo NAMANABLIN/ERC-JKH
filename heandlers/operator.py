@@ -3,12 +3,12 @@ from keyboards import kb_dialogue_with_operator, remove, kb_menu
 from aiogram.dispatcher import FSMContext
 from fsm import FSMCommunication_with_operator
 from create_bot import bot
-from data.defs_orm import get_user, update_user
+from data.defs_orm import get_user, update_user, get_users_report
 
 from fsm import FSMCommunication_with_operator
 
 from aiogram.dispatcher.filters import IsReplyFilter
-types.Messa
+
 # class ReplyFilterBot(BoundFilter):
 #     async def check(self, msg: types.Message):
 #         try:
@@ -41,15 +41,15 @@ async def talk2operator(msg: types.Message, state: FSMContext):
         await state.finish()
     else:
         user = await get_user(msg.from_id)
-        await bot.forward_message(user.operator, message_id=msg.message_id)
+        await bot.forward_message(user.operator, message_id=msg.message_id, from_chat_id=msg.from_id)
 
 
 async def start_dialogue_with_user(msg: types.Message):
-    operator = await get_user(msg.from_id)
+    operator = await get_user(int(msg.from_id))
     if operator.is_operator:
         msg_texts = msg.text.split()
         user_id=msg_texts[1]
-        operator_message = msg_texts[2]
+        operator_message = " ".join(msg_texts[2:])
         await update_user(user_id,
                           waiting_for_operator=True,
                           operator=msg.from_id)
@@ -63,14 +63,22 @@ async def finish_dialogue_with_user(msg: types.Message):
         await update_user(user_id,
                           waiting_for_operator=False,
                           operator=0)
+        await msg.answer('Вы завершили разговор с пользователем')
         await bot.send_message(user_id, text='Оператор завершил с вами разговор')
 async def operator_message_handler(msg: types.Message):
-    await msg.answer('А')
+    await bot.send_message(msg.reply_to_message.reply_to_message.from_id,
+                           text=msg.text)
+async def check_reports(msg:types.Message):
+    answer = []
+    for x in await get_users_report():
+        answer.append(f'{x.id} / {x.address}\n{x.message2operator}')
+    await msg.answer('Текущие репорты:\n'+'\n\n'.join(answer))
 def operator_heandlers_client(dp: Dispatcher):
     dp.register_message_handler(start_dialogue_with_operator, filters.Text('Написать оператору'))
     dp.register_message_handler(first_msg2operator, state=FSMCommunication_with_operator.first_message)
     dp.register_message_handler(talk2operator, state=FSMCommunication_with_operator.talk)
     dp.register_message_handler(start_dialogue_with_user, filters.Command('start_dialogue'))
     dp.register_message_handler(finish_dialogue_with_user, filters.Command('finish_dialogue'))
-    dp.register_message_handler(operator_message_handler, IsReplyFilter())
+    dp.register_message_handler(operator_message_handler, is_reply=True)
+    dp.register_message_handler(check_reports, filters.Text('Посмотреть кому нужна помощь'))
 
